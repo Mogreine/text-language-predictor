@@ -11,6 +11,8 @@ from enum import Enum
 from typing import Tuple, List, Dict, Optional
 from torch.utils.data import Dataset, IterableDataset, get_worker_info, DataLoader
 
+from src.train import TrainConfig
+
 
 class Languages(Enum):
     RUSSIAN = "ru"
@@ -130,21 +132,16 @@ class MultiLangCollate:
 class MultiLanguageDataModule(pl.LightningDataModule):
     def __init__(
         self,
-        n_sentences: int = 10,
-        max_seq_length: int = 512,
-        val_dataset_size: int = int(1e5),
-        batch_size: int = 8,
-        num_workers: int = 0,
-        seed: int = 57,
+        cfg: TrainConfig
     ):
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")
-        self.n_sentences = n_sentences
-        self.max_seq_length = max_seq_length
-        self.val_dataset_size = val_dataset_size
-        self.batch_size = batch_size
-        self.num_workers = num_workers
-        self.seed = seed
+        self.n_sentences = cfg.data.n_sentences
+        self.max_seq_length = cfg.data.max_seq_length
+        self.val_dataset_size = cfg.data.val_dataset_size
+        self.batch_size = cfg.training.batch_size
+        self.num_workers = cfg.data.num_workers
+        self.seed = cfg.seed
 
         self.collate_fn = MultiLangCollate()
 
