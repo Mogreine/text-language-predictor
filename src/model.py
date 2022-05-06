@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 from torchmetrics import F1Score, Accuracy
 from transformers import get_cosine_schedule_with_warmup, AutoModelForTokenClassification
 
-from src.train import TrainConfig
+from src.configs.config_classes import TrainConfig
 
 
 class BertLangNER(pl.LightningModule):
@@ -16,7 +16,9 @@ class BertLangNER(pl.LightningModule):
     ):
         super().__init__()
 
-        self.model = AutoModelForTokenClassification.from_pretrained("bert-base-multilingual-cased")
+        self.model = AutoModelForTokenClassification.from_pretrained(
+            "bert-base-multilingual-cased", num_labels=n_classes
+        )
 
         self.f1_score = F1Score(num_classes=n_classes, ignore_index=-100)
         self.acc_score = Accuracy(num_classes=n_classes, ignore_index=-100)

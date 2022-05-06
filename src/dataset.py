@@ -9,9 +9,9 @@ from transformers import PreTrainedTokenizer, AutoTokenizer
 from datasets import load_dataset
 from enum import Enum
 from typing import Tuple, List, Dict, Optional
-from torch.utils.data import Dataset, IterableDataset, get_worker_info, DataLoader
+from torch.utils.data import IterableDataset, get_worker_info, DataLoader
 
-from src.train import TrainConfig
+from src.configs.config_classes import TrainConfig
 
 
 class Languages(Enum):
@@ -103,23 +103,23 @@ class MultiLanguageDataset(IterableDataset):
         sample = " ".join(sentences)
         input_ids, token_type_ids, attention_mask = self.tokenizer(
             sample, max_length=max_seq_length, truncation=True, padding=False, return_tensors="pt"
-        )
+        ).values()
 
         # -100 labels is for tokenizer special tokens not to calculate loss on them
         labels = [-100] + list(itertools.chain.from_iterable(labels)) + [-100]
         labels = torch.tensor(labels)
 
-        return input_ids, token_type_ids, attention_mask, labels
+        return input_ids.flatten(), token_type_ids.flatten(), attention_mask.flatten(), labels
 
 
 class MultiLangCollate:
     def __call__(self, batch: Tuple[torch.Tensor, ...]) -> Dict[str, torch.Tensor]:
         input_ids, token_type_ids, attention_mask, labels = list(zip(*batch))
         input_ids, token_type_ids, attention_mask = [
-            pad_sequence(t).transpose(0, 1) for t in [input_ids, token_type_ids, attention_mask]
+            pad_sequence(t).transpose(0, 1).contiguous() for t in [input_ids, token_type_ids, attention_mask]
         ]
         # -100 not to calculate loss on padding tokens
-        labels = pad_sequence(labels, padding_value=-100)
+        labels = pad_sequence(labels, padding_value=-100).transpose(0, 1).contiguous()
 
         return {
             "input_ids": input_ids,

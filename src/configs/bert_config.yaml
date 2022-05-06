@@ -1,0 +1,21 @@
+data:
+  n_sentences: 10
+  max_seq_length: 512
+  val_dataset_size: 10
+  num_workers: 0
+
+training:
+  use_gpu: false
+  batch_size: 4
+  n_steps: 10
+  accumulate_grad_batches: 1
+  val_interval: 2
+
+  n_warmup_steps: 0.1
+  lr: 0.00002
+  w_decay: 0
+  scheduler: cosine
+  ratio: 100
+  lr_decay: 1
+
+seed: 57
