@@ -13,11 +13,13 @@ from src.configs.config_classes import TrainConfig
 
 @pyrallis.wrap(config_path=os.path.join(CONFIGS_DIR, "bert_config.yaml"))
 def train(cfg: TrainConfig):
+    pl.seed_everything(cfg.seed)
+
     n_classes = len(Languages)
     model = BertLangNER(cfg, n_classes)
     datamodule = MultiLanguageDataModule(cfg)
 
-    logger = WandbLogger(project="text-lang-predictor", log_model=False)
+    logger = WandbLogger(project="text-lang-predictor", log_model=True)
     lr_logger = LearningRateMonitor()
     checkpoint_callback = ModelCheckpoint(
         filename="{step}-{val_loss:.3f}-{val_f1:.3f}",
@@ -34,7 +36,7 @@ def train(cfg: TrainConfig):
         accumulate_grad_batches=cfg.training.accumulate_grad_batches,
         gpus=int(cfg.training.use_gpu),
         progress_bar_refresh_rate=1,
-        log_every_n_steps=1,
+        log_every_n_steps=10,
         logger=logger,
         callbacks=[lr_logger, checkpoint_callback],
         deterministic=True,

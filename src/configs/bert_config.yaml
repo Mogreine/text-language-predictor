@@ -1,15 +1,15 @@
 data:
-  n_sentences: 50
-  max_seq_length: 256
+  n_sentences: 30
+  max_seq_length: 512
   val_dataset_size: 10000
-  num_workers: 0
+  num_workers: 8
 
 training:
   use_gpu: true
-  batch_size: 8
-  n_steps: 500
+  batch_size: 12
+  n_steps: 1000
+  val_interval: 250
   accumulate_grad_batches: 1
-  val_interval: 100
 
   n_warmup_steps: 0.1
   lr: 0.00002
