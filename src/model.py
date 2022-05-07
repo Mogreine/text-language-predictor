@@ -48,8 +48,12 @@ class BertLangNER(pl.LightningModule):
         model_out = self(batch)
 
         # calculating metrics
-        self.f1_score(model_out.logits.argmax(-1), batch["labels"])
-        self.acc_score(model_out.logits.argmax(-1), batch["labels"])
+        mask = batch["labels"] != -100
+        preds = model_out.logits.argmax(-1)[mask]
+        target = batch["labels"][mask]
+
+        self.f1_score(preds, target)
+        self.acc_score(preds, target)
 
         output = {"loss": model_out.loss.item()}
 

@@ -1,4 +1,5 @@
 import itertools
+import os.path
 import re
 import torch
 import numpy as np
@@ -11,6 +12,7 @@ from enum import Enum
 from typing import Tuple, List, Dict, Optional
 from torch.utils.data import IterableDataset, get_worker_info, DataLoader
 
+from definitions import ROOT_DIR
 from src.configs.config_classes import TrainConfig
 
 
@@ -51,7 +53,9 @@ class MultiLanguageDataset(IterableDataset):
 
         self.tokenizer = tokenizer
 
-        datasets_raw = [load_dataset("wikiann", lang.value) for lang in Languages]
+        datasets_raw = [
+            load_dataset("wikiann", lang.value, cache_dir=os.path.join(ROOT_DIR, "data")) for lang in Languages
+        ]
         datasets_raw = [ds["train"] if is_train else ds["validation"] for ds in datasets_raw]
         self.datasets = {
             lang.value: self._prepare_sentences(datasets_raw[lang_id])
@@ -130,10 +134,7 @@ class MultiLangCollate:
 
 
 class MultiLanguageDataModule(pl.LightningDataModule):
-    def __init__(
-        self,
-        cfg: TrainConfig
-    ):
+    def __init__(self, cfg: TrainConfig):
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")
         self.n_sentences = cfg.data.n_sentences
@@ -164,7 +165,7 @@ class MultiLanguageDataModule(pl.LightningDataModule):
             pin_memory=True,
         )
 
-    def train_dataloader(self) -> DataLoader:
+    def val_dataloader(self) -> DataLoader:
         return DataLoader(
             self.ds_val,
             batch_size=self.batch_size,

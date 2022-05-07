@@ -30,12 +30,11 @@ def train(cfg: TrainConfig):
     )
 
     trainer = pl.Trainer(
-        max_epochs=-1,
         val_check_interval=cfg.training.val_interval,
         accumulate_grad_batches=cfg.training.accumulate_grad_batches,
         gpus=int(cfg.training.use_gpu),
         progress_bar_refresh_rate=1,
-        log_every_n_steps=10,
+        log_every_n_steps=1,
         logger=logger,
         callbacks=[lr_logger, checkpoint_callback],
         deterministic=True,
