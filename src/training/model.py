@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 from torchmetrics import F1Score, Accuracy
 from transformers import get_cosine_schedule_with_warmup, AutoModelForTokenClassification
 
-from src.training.configs.config_classes import TrainConfig
+from src.configs.config_classes import TrainConfig
 
 
 class BertLangNER(pl.LightningModule):

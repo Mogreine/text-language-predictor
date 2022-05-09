@@ -8,7 +8,7 @@ from pytorch_lightning.loggers import WandbLogger
 from definitions import CONFIGS_DIR
 from src.training.dataset import Languages, MultiLanguageDataModule
 from src.training.model import BertLangNER
-from src.training.configs.config_classes import TrainConfig
+from src.configs.config_classes import TrainConfig
 
 
 @pyrallis.wrap(config_path=os.path.join(CONFIGS_DIR, "bert_config.yaml"))

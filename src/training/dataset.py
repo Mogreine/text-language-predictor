@@ -14,7 +14,7 @@ from torch.utils.data import IterableDataset, get_worker_info, DataLoader
 from tqdm import trange
 
 from definitions import ROOT_DIR
-from src.training.configs.config_classes import TrainConfig
+from src.configs.config_classes import TrainConfig
 
 
 class Languages(Enum):
@@ -32,7 +32,8 @@ class Languages(Enum):
 
 class MultiLanguageDataset(IterableDataset):
     _symbols_to_replace_regex = re.compile("( +[0-9]+|\*)")
-    _lang_ids = {lang.value: idx for idx, lang in enumerate(Languages)}
+    _langs_to_ids = {lang.value: idx for idx, lang in enumerate(Languages)}
+    _ids_to_langs = {idx: lang for lang, idx in _langs_to_ids.items()}
 
     def __init__(
         self,
@@ -60,7 +61,7 @@ class MultiLanguageDataset(IterableDataset):
         datasets_raw = [ds["train"] if is_train else ds["validation"] for ds in datasets_raw]
         self.datasets = {
             lang.value: self._prepare_sentences(datasets_raw[lang_id])
-            for lang_id, lang in zip(self._lang_ids.values(), Languages)
+            for lang_id, lang in zip(self._langs_to_ids.values(), Languages)
         }
 
         if not is_train:
@@ -105,7 +106,7 @@ class MultiLanguageDataset(IterableDataset):
         sentences = sentences[permutation]
 
         labels = [
-            [self._lang_ids[lang]] * len(self.tokenizer.tokenize(sent)) for sent, lang in zip(sentences, languages)
+            [self._langs_to_ids[lang]] * len(self.tokenizer.tokenize(sent)) for sent, lang in zip(sentences, languages)
         ]
 
         sample = " ".join(sentences)
