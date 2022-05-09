@@ -1,6 +1,8 @@
 import itertools
 import os.path
 import re
+from string import punctuation
+
 import torch
 import numpy as np
 import pytorch_lightning as pl
@@ -31,18 +33,18 @@ class Languages(Enum):
 
 
 class MultiLanguageDataset(IterableDataset):
-    _symbols_to_replace_regex = re.compile("( +[0-9]+|\*)")
+    _symbols_to_replace_regex = re.compile(f"( +[0-9]+|\*|{punctuation})")
     _langs_to_ids = {lang.value: idx for idx, lang in enumerate(Languages)}
     _ids_to_langs = {idx: lang for lang, idx in _langs_to_ids.items()}
 
     def __init__(
-        self,
-        tokenizer: PreTrainedTokenizer,
-        n_sentences: int = 10,
-        max_seq_length: int = 512,
-        val_dataset_size: int = int(1e5),
-        is_train: bool = True,
-        seed: int = 57,
+            self,
+            tokenizer: PreTrainedTokenizer,
+            n_sentences: int = 10,
+            max_seq_length: int = 512,
+            val_dataset_size: int = int(1e5),
+            is_train: bool = True,
+            seed: int = 57,
     ):
         worker_info = get_worker_info()
         worker_id = worker_info.id if worker_info is not None else 0
@@ -94,8 +96,10 @@ class MultiLanguageDataset(IterableDataset):
             for sample in self.val_samples:
                 yield sample
 
+    # TODO: implement sample shuffling with 0.5 prob.
     def _generate_sample(
-        self, n_languages: int = 5, n_sentences_per_language: int = 1, n_sentences: int = 10, max_seq_length: int = 512
+            self, n_languages: int = 5, n_sentences_per_language: int = 1, n_sentences: int = 10,
+            max_seq_length: int = 512
     ):
         languages = np.random.choice([lang.value for lang in Languages], n_sentences, replace=True)
         sentences = np.array([np.random.choice(self.datasets[lang], 1)[0] for lang in languages])
@@ -115,7 +119,7 @@ class MultiLanguageDataset(IterableDataset):
         ).values()
 
         # -100 labels is for tokenizer special tokens not to calculate loss on them
-        labels = [-100] + list(itertools.chain.from_iterable(labels))[:max_seq_length-2] + [-100]
+        labels = [-100] + list(itertools.chain.from_iterable(labels))[:max_seq_length - 2] + [-100]
         labels = torch.tensor(labels)
 
         return input_ids.flatten(), token_type_ids.flatten(), attention_mask.flatten(), labels
