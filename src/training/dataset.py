@@ -9,12 +9,12 @@ from torch.nn.utils.rnn import pad_sequence
 from transformers import PreTrainedTokenizer, AutoTokenizer
 from datasets import load_dataset
 from enum import Enum
-from typing import Tuple, List, Dict, Optional
+from typing import Tuple, Dict, Optional
 from torch.utils.data import IterableDataset, get_worker_info, DataLoader
 from tqdm import trange
 
 from definitions import ROOT_DIR
-from src.configs.config_classes import TrainConfig
+from src.training.configs.config_classes import TrainConfig
 
 
 class Languages(Enum):
