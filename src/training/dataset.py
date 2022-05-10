@@ -34,8 +34,17 @@ class Languages(Enum):
 
 class MultiLanguageDataset(IterableDataset):
     _symbols_to_replace_regex = re.compile(f"[\*0-9{punctuation}]")
+    _punctuation_regex = re.compile(f"[{punctuation}]")
     _langs_to_ids = {lang.value: idx for idx, lang in enumerate(Languages)}
     _ids_to_langs = {idx: lang for lang, idx in _langs_to_ids.items()}
+
+    @classmethod
+    def preprocess_text(cls, text: str, delete_punctuation: bool = True) -> str:
+        text = re.sub(cls._symbols_to_replace_regex, "", text)
+        if delete_punctuation:
+            text = re.sub(cls._punctuation_regex, "", text)
+
+        return text
 
     def __init__(
         self,
@@ -86,7 +95,7 @@ class MultiLanguageDataset(IterableDataset):
         """
         sentences_tokenized = dataset["tokens"]
         sentences = [" ".join(sent_tokenized) for sent_tokenized in sentences_tokenized]
-        sentences = [re.sub(self._symbols_to_replace_regex, "", s) for s in sentences]
+        sentences = [self.preprocess_text(s) for s in sentences]
 
         return sentences
 

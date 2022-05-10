@@ -1,4 +1,5 @@
 import itertools
+import os.path
 from collections import defaultdict
 from typing import List, Dict
 
@@ -9,6 +10,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
+from definitions import ROOT_DIR, CHECKPOINTS_DIR
 from src.training.dataset import MultiLanguageDataset
 from src.training.model import BertLangNER
 
@@ -18,10 +20,12 @@ class TextLangPredictor:
         self.max_seq_length = 512
         self.batch_size = 2
         self.device = "cpu"
+        self.run_id = "31wx3mxu"
         self.model = self._load_model()
         self.tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")
 
     def parse_text(self, text: str):
+        text = MultiLanguageDataset.preprocess_text(text)
         chunks = self._chunk_text(text)
         # TODO: move it into chunking function
         chunks = [self.tokenizer.convert_tokens_to_string(tok) for tok in chunks]
@@ -39,7 +43,7 @@ class TextLangPredictor:
         res = defaultdict(list)
         for token, lang in zip(tokens, langs):
             res[lang].append(token)
-        res = {lang:  self.tokenizer.convert_tokens_to_string(lang_tokens) for lang, lang_tokens in res.items()}
+        res = {lang: self.tokenizer.convert_tokens_to_string(lang_tokens) for lang, lang_tokens in res.items()}
         return res
 
     def _lang_ids_to_names(self, langs_ids: List[int]) -> List[str]:
@@ -54,9 +58,7 @@ class TextLangPredictor:
             logits = self.model(input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask).logits
 
             attention_mask[
-                (input_ids == self.tokenizer.cls_token_id).logical_or(
-                    input_ids == self.tokenizer.sep_token_id
-                )
+                (input_ids == self.tokenizer.cls_token_id).logical_or(input_ids == self.tokenizer.sep_token_id)
             ] = 0
 
             token_preds = logits.argmax(-1)
@@ -80,7 +82,19 @@ class TextLangPredictor:
         return chunks
 
     def _load_model(self):
-        best_model = wandb.restore("last.ckpt", run_path="falca/text-lang-predictor/3kkkq9xn")
-        model = BertLangNER.load_from_checkpoint(best_model.name, map_location=self.device, log_val_metrics=False).model
+        api = wandb.Api()
+        run = api.run(f"falca/text-lang-predictor/{self.run_id}")
+
+        run_dir = os.path.join(CHECKPOINTS_DIR, run.name)
+        ckpt_path = os.path.join(run_dir, "last.ckpt")
+
+        if not os.path.exists(ckpt_path):
+            print(f"Downloading checkpoint to {run_dir}...")
+            run.file("last.ckpt").download(run_dir)
+
+        print(f"Loading checkpoint {ckpt_path}")
+
+        model = BertLangNER.load_from_checkpoint(ckpt_path, map_location=self.device, log_val_metrics=False).model
         model.eval()
+
         return model

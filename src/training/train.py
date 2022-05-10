@@ -22,10 +22,10 @@ def train(cfg: TrainConfig):
     logger = WandbLogger(project="text-lang-predictor", log_model=True)
     lr_logger = LearningRateMonitor()
     checkpoint_callback = ModelCheckpoint(
-        filename="{step}-{val_loss:.3f}-{val_f1:.3f}",
+        filename="best",
         dirpath=logger.experiment.dir,
         save_top_k=1,
-        save_last=True,
+        save_last=False,
         verbose=True,
         monitor="val_f1",
         mode="max",
