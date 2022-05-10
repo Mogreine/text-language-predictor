@@ -11,7 +11,7 @@ from torch.nn.utils.rnn import pad_sequence
 from transformers import PreTrainedTokenizer, AutoTokenizer
 from datasets import load_dataset
 from enum import Enum
-from typing import Tuple, Dict, Optional
+from typing import Tuple, Dict, Optional, List
 from torch.utils.data import IterableDataset, get_worker_info, DataLoader
 from tqdm import trange
 
@@ -33,18 +33,19 @@ class Languages(Enum):
 
 
 class MultiLanguageDataset(IterableDataset):
-    _symbols_to_replace_regex = re.compile(f"( +[0-9]+|\*|{punctuation})")
+    _symbols_to_replace_regex = re.compile(f"[\*0-9{punctuation}]")
     _langs_to_ids = {lang.value: idx for idx, lang in enumerate(Languages)}
     _ids_to_langs = {idx: lang for lang, idx in _langs_to_ids.items()}
 
     def __init__(
-            self,
-            tokenizer: PreTrainedTokenizer,
-            n_sentences: int = 10,
-            max_seq_length: int = 512,
-            val_dataset_size: int = int(1e5),
-            is_train: bool = True,
-            seed: int = 57,
+        self,
+        tokenizer: PreTrainedTokenizer,
+        n_sentences: int = 10,
+        max_seq_length: int = 512,
+        val_dataset_size: int = int(1e5),
+        word_perm_prob: float = 0.5,
+        is_train: bool = True,
+        seed: int = 57,
     ):
         worker_info = get_worker_info()
         worker_id = worker_info.id if worker_info is not None else 0
@@ -54,6 +55,7 @@ class MultiLanguageDataset(IterableDataset):
         self.n_sentences = n_sentences
         self.max_seq_length = max_seq_length
         self.val_dataset_size = val_dataset_size
+        self.word_perm_prob = word_perm_prob
 
         self.tokenizer = tokenizer
 
@@ -98,31 +100,49 @@ class MultiLanguageDataset(IterableDataset):
 
     # TODO: implement sample shuffling with 0.5 prob.
     def _generate_sample(
-            self, n_languages: int = 5, n_sentences_per_language: int = 1, n_sentences: int = 10,
-            max_seq_length: int = 512
+        self, n_languages: int = 5, n_sentences_per_language: int = 1, n_sentences: int = 10, max_seq_length: int = 512
     ):
         languages = np.random.choice([lang.value for lang in Languages], n_sentences, replace=True)
         sentences = np.array([np.random.choice(self.datasets[lang], 1)[0] for lang in languages])
 
-        permutation = np.random.permutation(len(languages))
+        if np.random.rand() <= self.word_perm_prob:
+            tokens, labels = self._word_permutation(sentences, languages)
+        else:
+            tokens, labels = self._sentence_permutation(sentences, languages)
 
-        languages = languages[permutation]
-        sentences = sentences[permutation]
-
-        labels = [
-            [self._langs_to_ids[lang]] * len(self.tokenizer.tokenize(sent)) for sent, lang in zip(sentences, languages)
-        ]
-
-        sample = " ".join(sentences)
+        sample = " ".join(tokens)
         input_ids, token_type_ids, attention_mask = self.tokenizer(
             sample, max_length=max_seq_length, truncation=True, padding=False, return_tensors="pt"
         ).values()
 
         # -100 labels is for tokenizer special tokens not to calculate loss on them
-        labels = [-100] + list(itertools.chain.from_iterable(labels))[:max_seq_length - 2] + [-100]
+        labels = [-100] + list(itertools.chain.from_iterable(labels))[: max_seq_length - 2] + [-100]
         labels = torch.tensor(labels)
 
+        assert (
+            input_ids.shape[-1] == labels.shape[0]
+        ), f"Token ids shape does not match labels shape -- {input_ids.shape[-1]} != {labels.shape[0]}"
+
         return input_ids.flatten(), token_type_ids.flatten(), attention_mask.flatten(), labels
+
+    def _sentence_permutation(self, sentences: np.ndarray, languages: np.ndarray) -> Tuple[List[str], List[List[int]]]:
+        permutation = np.random.permutation(len(languages))
+        languages = languages[permutation]
+        sentences = sentences[permutation]
+        labels = [
+            [self._langs_to_ids[lang]] * len(self.tokenizer.tokenize(sent)) for sent, lang in zip(sentences, languages)
+        ]
+
+        return sentences, labels
+
+    def _word_permutation(self, sentences: np.ndarray, languages: np.ndarray) -> Tuple[List[str], List[List[int]]]:
+        # split sentences into words
+        wrd_lang_pairs = [(word, languages[i]) for i in range(len(sentences)) for word in sentences[i].split()]
+        np.random.shuffle(wrd_lang_pairs)
+        words, _ = zip(*wrd_lang_pairs)
+        labels = [[self._langs_to_ids[lang]] * len(self.tokenizer.tokenize(word)) for word, lang in wrd_lang_pairs]
+
+        return words, labels
 
 
 class MultiLangCollate:
@@ -148,6 +168,7 @@ class MultiLanguageDataModule(pl.LightningDataModule):
         self.tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")
         self.n_sentences = cfg.data.n_sentences
         self.max_seq_length = cfg.data.max_seq_length
+        self.word_perm_prob = cfg.data.word_perm_prob
         self.val_dataset_size = cfg.data.val_dataset_size
         self.batch_size = cfg.training.batch_size
         self.num_workers = cfg.data.num_workers
@@ -157,11 +178,23 @@ class MultiLanguageDataModule(pl.LightningDataModule):
 
     def setup(self, stage: Optional[str] = None) -> None:
         self.ds_train = MultiLanguageDataset(
-            self.tokenizer, self.n_sentences, self.max_seq_length, self.val_dataset_size, True, seed=self.seed
+            self.tokenizer,
+            self.n_sentences,
+            self.max_seq_length,
+            self.val_dataset_size,
+            self.word_perm_prob,
+            True,
+            seed=self.seed,
         )
 
         self.ds_val = MultiLanguageDataset(
-            self.tokenizer, self.n_sentences, self.max_seq_length, self.val_dataset_size, False, seed=self.seed
+            self.tokenizer,
+            self.n_sentences,
+            self.max_seq_length,
+            self.val_dataset_size,
+            self.word_perm_prob,
+            False,
+            seed=self.seed,
         )
 
     def train_dataloader(self) -> DataLoader:

@@ -8,6 +8,7 @@ class DataConfig:
     max_seq_length: int = field(default=512)
     val_dataset_size: int = field(default=10)
     num_workers: int = field(default=0)
+    word_perm_prob: float = field(default=0.5)
 
 
 @dataclass

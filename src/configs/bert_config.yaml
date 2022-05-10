@@ -1,8 +1,9 @@
 data:
-  n_sentences: 30
+  n_sentences: 33
   max_seq_length: 512
-  val_dataset_size: 10000
+  val_dataset_size: 5000
   num_workers: 8
+  word_perm_prob: 0.5
 
 training:
   use_gpu: true
