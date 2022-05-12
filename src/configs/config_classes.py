@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Union
+from typing import Union, List, Optional
 
 
 @dataclass
@@ -14,6 +14,17 @@ class DataConfig:
     num_workers: int = field(default=0)
     # Probability of permutation of all words in a sample
     word_perm_prob: float = field(default=0.5)
+    # Supports "constant", "uniform" and "custom"
+    language_sampling_strategy: str = field(default="constant")
+    lengths: Optional[List[int]] = field(default=None)
+    length_probs: Optional[List[float]] = field(default=None)
+
+    def __post_init__(self):
+        assert self.language_sampling_strategy in [
+            "constant",
+            "uniform",
+            "custom",
+        ], f"Unknown sampling strategy: {self.language_sampling_strategy}. Must be 'constant', 'uniform' or 'custom'."
 
 
 @dataclass
@@ -41,6 +52,13 @@ class OptConfig:
     ratio: int = field(default=100)
     # Lr decay for bert layers
     lr_decay: float = field(default=0.95)
+
+    def __post_init__(self):
+        assert self.scheduler in [
+            "cosine",
+            "slanted",
+            "constant",
+        ], f"Unknown scheduler: {self.scheduler}. Must be 'cosine', 'slanted' or 'constant'."
 
 
 @dataclass

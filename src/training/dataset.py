@@ -49,23 +49,21 @@ class MultiLanguageDataset(IterableDataset):
     def __init__(
         self,
         tokenizer: PreTrainedTokenizer,
-        n_sentences: int = 10,
-        max_seq_length: int = 512,
-        val_dataset_size: int = int(1e5),
-        word_perm_prob: float = 0.5,
-        is_train: bool = True,
-        seed: int = 57,
+        cfg: TrainConfig,
+        is_train: bool,
     ):
         worker_info = get_worker_info()
         worker_id = worker_info.id if worker_info is not None else 0
-        np.random.seed(seed + worker_id)
+        np.random.seed(cfg.seed + worker_id)
 
         self.is_train = is_train
-        self.n_sentences = n_sentences
-        self.max_seq_length = max_seq_length
-        self.val_dataset_size = val_dataset_size
-        self.word_perm_prob = word_perm_prob
-
+        self.n_sentences = cfg.data.n_sentences
+        self.max_seq_length = cfg.data.max_seq_length
+        self.val_dataset_size = cfg.data.val_dataset_size
+        self.word_perm_prob = cfg.data.word_perm_prob
+        self.language_sampling_strategy = cfg.data.language_sampling_strategy
+        self.lengths = cfg.data.lengths
+        self.length_probs = cfg.data.length_probs
         self.tokenizer = tokenizer
 
         datasets_raw = [
@@ -111,8 +109,15 @@ class MultiLanguageDataset(IterableDataset):
     def _generate_sample(
         self, n_languages: int = 5, n_sentences_per_language: int = 1, n_sentences: int = 10, max_seq_length: int = 512
     ):
+        if self.language_sampling_strategy == "constant":
+            n_sentences = self.n_sentences
+        elif self.language_sampling_strategy == "uniform":
+            n_sentences = np.random.randint(1, n_sentences + 1)
+        else:
+            [n_sentences] = np.random.choice(self.lengths, 1, p=self.length_probs)
+
         languages = np.random.choice([lang.value for lang in Languages], n_sentences, replace=True)
-        sentences = np.array([np.random.choice(self.datasets[lang], 1)[0] for lang in languages])
+        sentences = np.array([self.datasets[lang][np.random.randint(len(self.datasets[lang]))] for lang in languages])
 
         if np.random.rand() <= self.word_perm_prob:
             tokens, labels = self._word_permutation(sentences, languages)
@@ -175,35 +180,24 @@ class MultiLanguageDataModule(pl.LightningDataModule):
     def __init__(self, cfg: TrainConfig):
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")
-        self.n_sentences = cfg.data.n_sentences
-        self.max_seq_length = cfg.data.max_seq_length
-        self.word_perm_prob = cfg.data.word_perm_prob
-        self.val_dataset_size = cfg.data.val_dataset_size
         self.batch_size = cfg.training.batch_size
         self.num_workers = cfg.data.num_workers
-        self.seed = cfg.seed
+
+        self.cfg = cfg
 
         self.collate_fn = MultiLangCollate()
 
     def setup(self, stage: Optional[str] = None) -> None:
         self.ds_train = MultiLanguageDataset(
             self.tokenizer,
-            self.n_sentences,
-            self.max_seq_length,
-            self.val_dataset_size,
-            self.word_perm_prob,
+            self.cfg,
             True,
-            seed=self.seed,
         )
 
         self.ds_val = MultiLanguageDataset(
             self.tokenizer,
-            self.n_sentences,
-            self.max_seq_length,
-            self.val_dataset_size,
-            self.word_perm_prob,
+            self.cfg,
             False,
-            seed=self.seed,
         )
 
     def train_dataloader(self) -> DataLoader:
