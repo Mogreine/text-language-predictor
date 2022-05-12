@@ -1,5 +1,5 @@
 data:
-  n_sentences: 33
+  n_sentences: 35
   max_seq_length: 512
   val_dataset_size: 10000
   num_workers: 8
