@@ -2,7 +2,8 @@ import numpy as np
 import torch
 import pytorch_lightning as pl
 
-from torchmetrics import F1Score, Accuracy
+from torch import nn
+from torchmetrics import F1Score, Accuracy, Recall, Precision
 from transformers import get_cosine_schedule_with_warmup, AutoModelForTokenClassification
 
 from src.configs.config_classes import TrainConfig
@@ -20,8 +21,14 @@ class BertLangNER(pl.LightningModule):
             "bert-base-multilingual-cased", num_labels=n_classes
         )
 
-        self.f1_score = F1Score(num_classes=n_classes, ignore_index=-100)
-        self.acc_score = Accuracy(num_classes=n_classes, ignore_index=-100)
+        self.metrics = nn.ModuleDict(
+            {
+                "acc": Accuracy(num_classes=n_classes),
+                "precision": Precision(num_classes=n_classes, average="macro", mdmc_average="global"),
+                "recall": Recall(num_classes=n_classes, average="macro", mdmc_average="global"),
+                "f1": F1Score(num_classes=n_classes, average="macro", mdmc_average="global"),
+            }
+        )
 
         self.lr = cfg.training.lr
         self.lr_decay = cfg.training.lr_decay
@@ -52,8 +59,8 @@ class BertLangNER(pl.LightningModule):
         preds = model_out.logits.argmax(-1)[mask]
         target = batch["labels"][mask]
 
-        self.f1_score(preds, target)
-        self.acc_score(preds, target)
+        for metric in self.metrics.values():
+            metric(preds, target)
 
         output = {"loss": model_out.loss.item()}
 
@@ -61,9 +68,10 @@ class BertLangNER(pl.LightningModule):
 
     def validation_epoch_end(self, validation_step_outputs):
         loss = np.mean([l["loss"] for l in validation_step_outputs])
-        self.log("val_f1", self.f1_score, on_epoch=True, prog_bar=True, logger=True)
-        self.log("val_acc", self.acc_score, on_epoch=True, prog_bar=True, logger=True)
         self.log("val_loss", loss, on_epoch=True, prog_bar=True, logger=True)
+
+        for metric_name, metric in self.metrics.items():
+            self.log(f"val_{metric_name}", metric, on_epoch=True, prog_bar=True, logger=True)
 
     def configure_optimizers(self):
         optimizer = self._create_optimizer()

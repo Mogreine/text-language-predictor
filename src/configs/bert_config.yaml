@@ -4,19 +4,19 @@ data:
   val_dataset_size: 10000
   num_workers: 8
   word_perm_prob: 0.15
-  language_sampling_strategy: custom
+  language_sampling_strategy: uniform
   lengths: [1, 2, 5, 15, 35]
   length_probs: [0.5, 0.3, 0.15, 0.04, 0.01]
 
 training:
   use_gpu: true
   batch_size: 12
-  n_steps: 1000
+  n_steps: 20000
   val_interval: 250
   accumulate_grad_batches: 1
 
   n_warmup_steps: 0.1
-  lr: 0.00002
+  lr: 0.00005
   w_decay: 0
   scheduler: cosine
   ratio: 100

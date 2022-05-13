@@ -105,10 +105,7 @@ class MultiLanguageDataset(IterableDataset):
             for sample in self.val_samples:
                 yield sample
 
-    # TODO: implement sample shuffling with 0.5 prob.
-    def _generate_sample(
-        self, n_languages: int = 5, n_sentences_per_language: int = 1, n_sentences: int = 10, max_seq_length: int = 512
-    ):
+    def _generate_sample(self, n_sentences: int = 10, max_seq_length: int = 512):
         if self.language_sampling_strategy == "constant":
             n_sentences = self.n_sentences
         elif self.language_sampling_strategy == "uniform":
