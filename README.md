@@ -88,3 +88,8 @@ To run marker tests for the model, run:
 ```
 PYTHONPATH=. pytest tests/model_tests.py
 ```
+
+## Further work
+1. Use cleaner data
+2. https://arxiv.org/pdf/1910.11476v6.pdf
+3. Train model and tokenizer for required languages specifically
