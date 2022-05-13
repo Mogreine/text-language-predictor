@@ -1,11 +1,13 @@
 import unittest
 
+from src.configs.config_classes import InferenceConfig
 from src.inference.models import TextLangPredictor
 
 
 class TestStringMethods(unittest.TestCase):
     def setUp(self):
-        self.predictor = TextLangPredictor()
+        cfg = InferenceConfig()
+        self.predictor = TextLangPredictor(cfg)
 
     def test_russian_long(self):
         text = """
@@ -19,13 +21,6 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(langs[0], "ru", f"Predicted: {langs}, expected: ru")
 
     def test_russian_short(self):
-        text = "Как тебя зовут"
-        langs, spans = zip(*self.predictor.parse_text(text).items())
-
-        self.assertEqual(len(langs), 1, f"Predicted: {langs}, expected: ru")
-        self.assertEqual(langs[0], "ru", f"Predicted: {langs}, expected: ru")
-
-    def test_russian_short2(self):
         text = "В споре рождается истина"
         langs, spans = zip(*self.predictor.parse_text(text).items())
 
@@ -107,9 +102,33 @@ class TestStringMethods(unittest.TestCase):
         langs, spans = zip(*self.predictor.parse_text(text).items())
 
         actual_langs = ("en", "ru", "de")
+        actual_spans = ("Great day", "Замечательный день", "Wunderschönen Tag")
 
         self.assertEqual(len(langs), 3, f"Predicted: {langs}, expected: {actual_langs}")
         self.assertEqual(langs, actual_langs, f"Predicted: {langs}, expected: {actual_langs}")
+        self.assertEqual(spans, actual_spans, f"Predicted: {spans}, expected: {actual_spans}")
+
+    def test_multilang2(self):
+        text = "Кто who am I Я. Who knows"
+        langs, spans = zip(*self.predictor.parse_text(text).items())
+
+        actual_langs = ("ru", "en")
+        actual_spans = ("Кто Я", "who am I Who knows")
+
+        self.assertEqual(len(langs), 2, f"Predicted: {langs}, expected: {actual_langs}")
+        self.assertEqual(langs, actual_langs, f"Predicted: {langs}, expected: {actual_langs}")
+        self.assertEqual(spans, actual_spans, f"Predicted: {spans}, expected: {actual_spans}")
+
+    def test_multilang_short(self):
+        text = "Машина the car Машына"
+        langs, spans = zip(*self.predictor.parse_text(text).items())
+
+        actual_langs = ("ru", "en", "be")
+        actual_spans = ("Машина", "the car", "Машына")
+
+        self.assertEqual(len(langs), len(actual_langs), f"Predicted: {langs}, expected: {actual_langs}")
+        self.assertEqual(langs, actual_langs, f"Predicted: {langs}, expected: {actual_langs}")
+        self.assertEqual(spans, actual_spans, f"Predicted: {spans}, expected: {actual_spans}")
 
 
 if __name__ == "__main__":

@@ -81,4 +81,4 @@ class InferenceConfig:
     # The text is split in chunks. Batch size if number of simultaneously processed chunks by the model
     batch_size: int = field(default=4)
     # Run id from W&B
-    run_id: str = field(default="1xmy0blc")
+    run_id: str = field(default="130npnhb")
