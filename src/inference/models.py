@@ -1,14 +1,14 @@
 import itertools
 import os.path
-from collections import defaultdict
-from typing import List, Dict, Tuple
-
 import numpy as np
 import torch
 import wandb
-from torch.utils.data import TensorDataset, DataLoader
+
 from tqdm import tqdm
+from torch.utils.data import TensorDataset, DataLoader
 from transformers import AutoTokenizer, BertForTokenClassification
+from collections import defaultdict
+from typing import List, Dict
 
 from definitions import ROOT_DIR, CHECKPOINTS_DIR
 from src.configs.config_classes import InferenceConfig

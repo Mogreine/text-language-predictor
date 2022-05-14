@@ -2,19 +2,18 @@ import itertools
 import json
 import os.path
 import re
-from string import punctuation
-
 import torch
 import numpy as np
 import pytorch_lightning as pl
 
-from torch.nn.utils.rnn import pad_sequence
-from transformers import PreTrainedTokenizer, AutoTokenizer
 from datasets import load_dataset
 from enum import Enum
+from string import punctuation
 from typing import Tuple, Dict, Optional, List
-from torch.utils.data import IterableDataset, get_worker_info, DataLoader
 from tqdm import trange, tqdm
+from transformers import PreTrainedTokenizer, AutoTokenizer
+from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import IterableDataset, get_worker_info, DataLoader
 
 from definitions import ROOT_DIR
 from src.configs.config_classes import TrainConfig
