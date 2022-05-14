@@ -97,14 +97,14 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(len(langs), 1, f"Predicted: {langs}, expected: he")
         self.assertEqual(langs[0], "he", f"Predicted: {langs}, expected: he")
 
-    def test_multilang(self):
+    def test_multilang1(self):
         text = "Great day Замечательный день Wunderschönen Tag"
         langs, spans = zip(*self.predictor.parse_text(text).items())
 
         actual_langs = ("en", "ru", "de")
         actual_spans = ("Great day", "Замечательный день", "Wunderschönen Tag")
 
-        self.assertEqual(len(langs), 3, f"Predicted: {langs}, expected: {actual_langs}")
+        self.assertEqual(len(langs), len(actual_langs), f"Predicted: {langs}, expected: {actual_langs}")
         self.assertEqual(langs, actual_langs, f"Predicted: {langs}, expected: {actual_langs}")
         self.assertEqual(spans, actual_spans, f"Predicted: {spans}, expected: {actual_spans}")
 
@@ -115,16 +115,22 @@ class TestStringMethods(unittest.TestCase):
         actual_langs = ("ru", "en")
         actual_spans = ("Кто Я", "who am I Who knows")
 
-        self.assertEqual(len(langs), 2, f"Predicted: {langs}, expected: {actual_langs}")
+        self.assertEqual(len(langs), len(actual_langs), f"Predicted: {langs}, expected: {actual_langs}")
         self.assertEqual(langs, actual_langs, f"Predicted: {langs}, expected: {actual_langs}")
         self.assertEqual(spans, actual_spans, f"Predicted: {spans}, expected: {actual_spans}")
 
-    def test_multilang_short(self):
-        text = "Машина the car Машына"
+    def test_multilang3(self):
+        text = "Мечта может стать support or source leiden. Mai träumen insanı həyatla doldurmaq немесе оны өлтіріңіз."
         langs, spans = zip(*self.predictor.parse_text(text).items())
 
-        actual_langs = ("ru", "en", "be")
-        actual_spans = ("Машина", "the car", "Машына")
+        actual_langs = ("ru", "en", "de", "az", "kk")
+        actual_spans = (
+            "Мечта может стать",
+            "support or source",
+            "leiden Mai träumen",
+            "insanı həyatla doldurmaq",
+            "немесе оны өлтіріңіз",
+        )
 
         self.assertEqual(len(langs), len(actual_langs), f"Predicted: {langs}, expected: {actual_langs}")
         self.assertEqual(langs, actual_langs, f"Predicted: {langs}, expected: {actual_langs}")

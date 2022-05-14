@@ -4,6 +4,8 @@ from typing import Union, List, Optional
 
 @dataclass
 class DataConfig:
+    # Dataset name
+    dataset_name: str = field(default="wikiann")
     # Max number of sentences if a sample
     n_sentences: int = field(default=10)
     # Max sequence length of a sample
@@ -25,6 +27,11 @@ class DataConfig:
             "uniform",
             "custom",
         ], f"Unknown sampling strategy: {self.language_sampling_strategy}. Must be 'constant', 'uniform' or 'custom'."
+
+        assert self.dataset_name in [
+            "wikiann",
+            "open subtitles"
+        ], f"Unknown dataset name: {self.dataset_name}. Must be 'wikiann' or 'open subtitles'."
 
 
 @dataclass
@@ -81,4 +88,4 @@ class InferenceConfig:
     # The text is split in chunks. Batch size if number of simultaneously processed chunks by the model
     batch_size: int = field(default=4)
     # Run id from W&B
-    run_id: str = field(default="130npnhb")
+    run_id: str = field(default="1bg29vqt")

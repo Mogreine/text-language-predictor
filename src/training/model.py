@@ -23,7 +23,7 @@ class BertLangNER(pl.LightningModule):
 
         self.metrics = nn.ModuleDict(
             {
-                "acc": Accuracy(num_classes=n_classes),
+                "acc": Accuracy(num_classes=n_classes, average="macro", mdmc_average="global"),
                 "precision": Precision(num_classes=n_classes, average="macro", mdmc_average="global"),
                 "recall": Recall(num_classes=n_classes, average="macro", mdmc_average="global"),
                 "f1": F1Score(num_classes=n_classes, average="macro", mdmc_average="global"),
