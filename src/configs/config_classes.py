@@ -30,7 +30,7 @@ class DataConfig:
 
         assert self.dataset_name in [
             "wikiann",
-            "open subtitles"
+            "open subtitles",
         ], f"Unknown dataset name: {self.dataset_name}. Must be 'wikiann' or 'open subtitles'."
 
 

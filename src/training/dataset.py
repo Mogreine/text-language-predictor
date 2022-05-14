@@ -119,7 +119,7 @@ class MultiLanguageDataset(IterableDataset):
 
     def _prepare_opensub(self) -> Dict[str, List[str]]:
         dataset_type = "train" if self.is_train else "val"
-        dataset_path = os.path.join(ROOT_DIR, f"data/open_subtitles/{dataset_type}2.json")
+        dataset_path = os.path.join(ROOT_DIR, f"data/open_subtitles/{dataset_type}.json")
 
         with open(dataset_path, "r") as f:
             datasets = json.load(f)
