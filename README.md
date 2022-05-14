@@ -29,8 +29,6 @@ All the model and dataset details can be found in:
 
 respectively.
 
-Also, with `word_perm_prob` probability all the words in a sample are shuffled.
-
 ### Usage
 
 To run training run from the root:
@@ -44,6 +42,11 @@ All the training parameters are stored in `src/configs/bert_config.yaml`. To see
 PYTHONPATH=. python src/training/train.py --help
 ```
 You can set parameters either by editing the config file or directly through command-line.
+
+Note, that if you want to use OpenSubtitles training dataset, then you have to download it:
+```
+bash download_opensubtitles.sh
+```
 
 ## Inference
 You can play with the model using `parse.py` script:
@@ -79,6 +82,8 @@ Once number of sentences `n` is defined then
 2. Sample random texts
 3. Shuffle texts
 4. Concatenate texts into sample
+
+Also, with `word_perm_prob` probability all the words in a sample are shuffled.
 
 ### Model
 I used pretrained BERT (bert-base-multilingual-cased). Didn't really have a choice here since there is not 
