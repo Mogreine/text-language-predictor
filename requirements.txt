@@ -1,7 +1,12 @@
-numpy~=1.19.4
-datasets~=1.6.2
+wandb~=0.10.33
+pandas~=1.2.5
+datasets~=2.1.0
 transformers~=4.18.0
 dataclasses~=0.6
-torch~=1.9.1
+numpy~=1.19.5
+torch~=1.11.0
 torchmetrics~=0.8.0
+pytorch-lightning~=1.6.1
 pyrallis~=0.3.1
+tqdm~=4.64.0
+scikit-learn~=0.24.2
