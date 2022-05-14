@@ -89,7 +89,7 @@ Also, with `word_perm_prob` probability all the words in a sample are shuffled.
 I used pretrained BERT (bert-base-multilingual-cased). Didn't really have a choice here since there is not 
 so many models pretrained for all the required languages. 
 
-#### Thoughts and process
+### Thoughts and process
 First, I decided to choose WikiAnn dataset, because:
 1. Easy to use -- it has all the required languages so there is no need to merge multiple datasets.
 2. Balanced and not big -- almost every language has 20k samples.

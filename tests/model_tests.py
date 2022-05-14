@@ -109,17 +109,6 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(spans, actual_spans, f"Predicted: {spans}, expected: {actual_spans}")
 
     def test_multilang2(self):
-        text = "Кто who am I Я. Who knows"
-        langs, spans = zip(*self.predictor.parse_text(text).items())
-
-        actual_langs = ("ru", "en")
-        actual_spans = ("Кто Я", "who am I Who knows")
-
-        self.assertEqual(len(langs), len(actual_langs), f"Predicted: {langs}, expected: {actual_langs}")
-        self.assertEqual(langs, actual_langs, f"Predicted: {langs}, expected: {actual_langs}")
-        self.assertEqual(spans, actual_spans, f"Predicted: {spans}, expected: {actual_spans}")
-
-    def test_multilang3(self):
         text = "Мечта может стать support or source leiden. Mai träumen insanı həyatla doldurmaq немесе оны өлтіріңіз."
         langs, spans = zip(*self.predictor.parse_text(text).items())
 
