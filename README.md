@@ -123,4 +123,4 @@ PYTHONPATH=. pytest tests/model_tests.py
 2. Using better techniques for NER (e.g. [here](https://arxiv.org/pdf/1910.11476v6.pdf)). We could first find spans and then classify them.
 3. Train model and tokenizer for required languages specifically. In this case vocabulary will be way more suitable.
 4. May try using character level transformers -- to understand the language of a word it might be enough to look only at symbols.
-5. Bert is trained with absolute positional embeddings. Though to understand to language of a token it is more useful to have the information about the nearest tokens directly. So using relative positional embeddings seems to be more suitable.
+5. Bert is trained with absolute positional embeddings. Though to understand a language of a token it is more useful to have the information about the nearest tokens directly. So using relative positional embeddings seems to be more suitable.
