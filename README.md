@@ -106,7 +106,7 @@ Everything would be fine but MC4 data differs form OpenSubtitles -- samples are 
 It was necessary to do because otherwise long russian texts were considered to be belarusian by the model.
 
 #### TL;DR
-![](../../../Downloads/6g3rhg.jpg)
+![](data/meme.jpg)
 ## Tests
 To run marker tests for the model, run:
 ```
