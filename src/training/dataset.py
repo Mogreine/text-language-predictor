@@ -23,14 +23,14 @@ from src.configs.config_classes import TrainConfig
 class Languages(Enum):
     RUSSIAN = "ru"
     UKRAINIAN = "uk"
-    Belarusian = "be"
-    Kazakh = "kk"
-    Azerbaijani = "az"
-    Armenian = "hy"
-    Georgian = "ka"
-    Hebrew = "he"
-    English = "en"
-    German = "de"
+    BELARUSIAN = "be"
+    KAZAKH = "kk"
+    AZERBAIJANI = "az"
+    ARMENIAN = "hy"
+    GEORGIAN = "ka"
+    HEBREW = "he"
+    ENGLISH = "en"
+    GERMAN = "de"
 
 
 class MultiLanguageDataset(IterableDataset):
